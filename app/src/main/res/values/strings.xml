@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Moscow Places</string>
+
+    <string name="filter_all">Все</string>
+</resources>
