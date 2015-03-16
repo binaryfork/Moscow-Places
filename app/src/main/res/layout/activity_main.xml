@@ -35,6 +35,7 @@
         android:minHeight="?attr/actionBarSize"
         android:textColor="@android:color/white"
         android:textSize="20sp" />
+
     <com.github.ksoichiro.android.observablescrollview.ObservableListView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -52,6 +53,7 @@
         android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:padding="4dp"
         android:src="@mipmap/ic_filter"
         android:scaleType="centerInside"
         app:fab_colorNormal="@color/accent" />

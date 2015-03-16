@@ -15,6 +15,8 @@ public interface Contents {
             @Query("region") String region,
             @Query("type") String type,
             @Query("limit") Integer limit,
+            @Query("skip") Integer skip,
+            @Query("category") String category,
             Callback<List<Content>> callback
     );
 

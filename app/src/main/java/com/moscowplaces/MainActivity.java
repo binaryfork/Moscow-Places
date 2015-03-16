@@ -23,12 +23,14 @@ import retrofit.client.Response;
 
 public class MainActivity extends FlexibleSpaceActivity {
 
-    private static final int CONTENTS_LIMIT = 0;
+    private static final int CONTENTS_LIMIT = 15;
     private static final String STATE_DATA_COUNT = "loaded";
     private int dataCount;
 
     private ArticleAdapter articleAdapter;
     private View progressBar;
+
+    private String category = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +48,7 @@ public class MainActivity extends FlexibleSpaceActivity {
 
         if (isNetworkConnected() && dataCount == 0) {
             // Update the database from the server.
-            setupContent();
+            setupContent(0, "");
         } else {
             // Load the local database.
             setupListView(Content.getList());
@@ -55,16 +57,19 @@ public class MainActivity extends FlexibleSpaceActivity {
         // Filter popup menu.
         final PopupMenu popup = new PopupMenu(MainActivity.this, mFab);
 
-        // Load filter categories from the server.
+        // Load list of categories from the server and keep them in database.
         setupCategories(popup.getMenu());
         popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem menuItem) {
                 int menuId = menuItem.getItemId();
+                // Instantly filter items in database and keep category for loading new items on endless scrolling.
                 if (menuId == R.id.filter_all) {
+                    category = "";
                     articleAdapter.data = Content.getList();
                 } else {
-                    articleAdapter.data = Content.getListByCategory(Category.getList().get(menuId)._id);
+                    category = Category.getList().get(menuId)._id;
+                    articleAdapter.data = Content.getListByCategory(category);
                 }
                 articleAdapter.notifyDataSetChanged();
                 return false;
@@ -75,6 +80,16 @@ public class MainActivity extends FlexibleSpaceActivity {
             @Override
             public void onClick(View v) {
                 popup.show();
+            }
+        });
+
+        // Load new data on scroll.
+        listView.setOnScrollListener(new EndlessScrollListener() {
+            @Override
+            public void onLoadMore(int totalItemsCount) {
+                if (dataCount != 0) {
+                    setupContent(totalItemsCount - 1, category);
+                }
             }
         });
     }
@@ -90,8 +105,13 @@ public class MainActivity extends FlexibleSpaceActivity {
         return (cm.getActiveNetworkInfo() != null);
     }
 
-    private void setupContent() {
-        TravelApi.getInstance().contents().region("Russia_Moscow", "address", CONTENTS_LIMIT, new Callback<List<Content>>() {
+    /**
+     * Load data from the server.
+     * @param skip Number of items to skip.
+     * @param category id of content category.
+     */
+    private void setupContent(int skip, String category) {
+        TravelApi.getInstance().contents().region("Russia_Moscow", "address", CONTENTS_LIMIT, skip, category, new Callback<List<Content>>() {
             @Override
             public void success(List<Content> contents, Response response) {
                 for (Content content : contents) {

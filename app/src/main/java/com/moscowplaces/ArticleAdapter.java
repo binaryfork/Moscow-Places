@@ -14,6 +14,7 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.moscowplaces.network.entities.Content;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ArticleAdapter extends BaseAdapter {
@@ -28,19 +29,25 @@ public class ArticleAdapter extends BaseAdapter {
         inflater = activity.getLayoutInflater();
     }
 
+    public void addData(List<Content> newData) {
+        if (data == null)
+            data = new ArrayList<>();
+        data.addAll(newData);
+    }
+
     @Override
     public int getCount() {
-        return data.size();
+        return data == null ? 0 : data.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return data.get(position);
+        return data == null ? 0 : data.get(position);
     }
 
     @Override
     public long getItemId(int position) {
-        return position;
+        return data == null ? 0 : position;
     }
 
     @Override
