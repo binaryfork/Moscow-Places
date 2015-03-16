@@ -10,6 +10,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.activeandroid.ActiveAndroid;
 import com.moscowplaces.network.TravelApi;
 import com.moscowplaces.network.entities.Category;
 import com.moscowplaces.network.entities.Content;
@@ -114,10 +115,16 @@ public class MainActivity extends FlexibleSpaceActivity {
         TravelApi.getInstance().contents().region("Russia_Moscow", "address", CONTENTS_LIMIT, skip, category, new Callback<List<Content>>() {
             @Override
             public void success(List<Content> contents, Response response) {
-                for (Content content : contents) {
-                    content.address_cover_1x.save();
-                    content.setupCategories();
-                    content.save();
+                ActiveAndroid.beginTransaction();
+                try {
+                    for (Content content : contents) {
+                        content.address_cover_1x.save();
+                        content.setupCategories();
+                        content.save();
+                    }
+                    ActiveAndroid.setTransactionSuccessful();
+                } finally {
+                    ActiveAndroid.endTransaction();
                 }
                 setupListView(contents);
             }
@@ -144,10 +151,16 @@ public class MainActivity extends FlexibleSpaceActivity {
             TravelApi.getInstance().categories().getList(new Callback<List<Category>>() {
                 @Override
                 public void success(List<Category> categories, Response response) {
-                    for (int i = 0; i < categories.size(); i++) {
-                        Category category = categories.get(i);
-                        category.save();
-                        menu.add(0, i, i, category.name);
+                    ActiveAndroid.beginTransaction();
+                    try {
+                        for (int i = 0; i < categories.size(); i++) {
+                            Category category = categories.get(i);
+                            category.save();
+                            menu.add(0, i, i, category.name);
+                        }
+                        ActiveAndroid.setTransactionSuccessful();
+                    } finally {
+                        ActiveAndroid.endTransaction();
                     }
                 }
 
