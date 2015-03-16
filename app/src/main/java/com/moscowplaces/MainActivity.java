@@ -23,6 +23,10 @@ import retrofit.client.Response;
 
 public class MainActivity extends FlexibleSpaceActivity {
 
+    private static final int CONTENTS_LIMIT = 0;
+    private static final String STATE_DATA_COUNT = "loaded";
+    private int dataCount;
+
     private ArticleAdapter articleAdapter;
     private View progressBar;
 
@@ -33,11 +37,18 @@ public class MainActivity extends FlexibleSpaceActivity {
 
         progressBar = findViewById(R.id.progressBar);
 
-        if (isNetworkConnected()) {
-            // Load the local database.
+        articleAdapter = new ArticleAdapter(null, this);
+        listView.setAdapter(articleAdapter);
+
+        if (savedInstanceState != null) {
+            dataCount = savedInstanceState.getInt(STATE_DATA_COUNT);
+        }
+
+        if (isNetworkConnected() && dataCount == 0) {
+            // Update the database from the server.
             setupContent();
         } else {
-            // Update the database from the server.
+            // Load the local database.
             setupListView(Content.getList());
         }
 
@@ -68,13 +79,19 @@ public class MainActivity extends FlexibleSpaceActivity {
         });
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putInt(STATE_DATA_COUNT, dataCount);
+        super.onSaveInstanceState(outState);
+    }
+
     private boolean isNetworkConnected() {
         ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         return (cm.getActiveNetworkInfo() != null);
     }
 
     private void setupContent() {
-        TravelApi.getInstance().contents().region("Russia_Moscow", "address", 0, new Callback<List<Content>>() {
+        TravelApi.getInstance().contents().region("Russia_Moscow", "address", CONTENTS_LIMIT, new Callback<List<Content>>() {
             @Override
             public void success(List<Content> contents, Response response) {
                 for (Content content : contents) {
@@ -94,9 +111,10 @@ public class MainActivity extends FlexibleSpaceActivity {
     }
 
     private void setupListView(List<Content> list) {
+        dataCount = list.size();
         showFab();
-        articleAdapter = new ArticleAdapter(list, this);
-        listView.setAdapter(articleAdapter);
+        articleAdapter.addData(list);
+        articleAdapter.notifyDataSetChanged();
         progressBar.setVisibility(View.GONE);
     }
 
